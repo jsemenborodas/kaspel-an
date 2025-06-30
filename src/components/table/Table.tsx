@@ -1,14 +1,15 @@
-import { Space, Table, Button, Flex} from 'antd';
+import { Space, Table, Button, Flex, Form, Input} from 'antd';
 import {
   DeleteOutlined,
   EditOutlined,
   FormOutlined,
+  SearchOutlined,
   SortAscendingOutlined,
   SortDescendingOutlined
 } from '@ant-design/icons';
 
 import './Table.css'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CreateModal } from '../modals/createModal';
 import { EditModal } from '../modals/editModal';
 
@@ -20,12 +21,16 @@ export type DataSourceType = {
 };
 
 export function TableComponent() {
+    const [form] = Form.useForm();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isNameAscending, setIsNameAcsending] = useState<boolean|undefined>(undefined);
     const [isDateAscending, setIsDateAscending] = useState<boolean|undefined>(undefined);
     const [isValueAscending, setIsValueAscending] = useState<boolean|undefined>(undefined);
     const [editData, setEditData] = useState<DataSourceType>({name: '', date: 0, value: 0, key: '0'})
+    const [searchValue, setSearchValue] = useState('');
+    const [isSearchStarted, setIsSearchStarted] = useState(false);
+    const [searchFilteredData, setSearchFilteredData] = useState<DataSourceType[]>([]);
     const [dataSource, setDataSource] = useState<DataSourceType[]>([
     {
       key: '1',
@@ -40,7 +45,15 @@ export function TableComponent() {
       value: 10,
     },
   ]);
+    {/*Я не подключал линтер, поэтому за структуру кода ...) */}
 
+    const searchFunc = (value: string) => {
+        changeSearchValue(value);
+    }
+    
+    const changeSearchValue = (value: string) => {
+        setSearchValue(value)
+    }
     const sortByNames = () => {
         if(isNameAscending === undefined) {
             setIsNameAcsending(true);
@@ -152,13 +165,31 @@ const changeData = (key: string, name: string, date: number, value: number) => {
         )
     );
 };
+
+useEffect(() => {
+    if(searchValue.length === 0) {
+        setIsSearchStarted(false)
+        return
+    }setIsSearchStarted(true);
+    const filteredData = dataSource.filter((item) => {
+        const dateAsString = item.date.toString();
+        const valueAsString = item.value.toString();
+        return(
+            item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+            dateAsString.includes(searchValue) ||
+            valueAsString.includes(searchValue)
+        )
+    })
+    setSearchFilteredData(filteredData)
+}, [searchValue])
 return(<>
-    <Flex className='CreateButtonWrapper'>
+    <Flex className='CreateButtonWrapper' gap='2em'>
+        <Form className='Search' form={form}><Form.Item name='searchValue'><Input onChange={(e) => searchFunc(e.target.value)} prefix={<SearchOutlined className='SearchIcon' />} placeholder='Search'/> </Form.Item></Form>
         <Button className='CreateButton' onClick={() => {
             setIsCreateModalOpen(!isCreateModalOpen);
         }}> <FormOutlined /><span className='CreateButtonSpan'> Create a new one</span></Button>
     </Flex>
-    <Table pagination={false} columns={columns} dataSource={dataSource.map((i)=> i)} className='Table'/>
+    <Table pagination={false} columns={columns} dataSource={ isSearchStarted ? searchFilteredData.map((i) => i) : dataSource.map((i)=> i)} className='Table'/>
     <CreateModal isModalOpen = {isCreateModalOpen} setIsModalOpen={setIsCreateModalOpen} addToDataSource={AddToDataSource}/>
     <EditModal isModalOpen ={isEditModalOpen} setIsModalOpen={setIsEditModalOpen} changeData={changeData} data={editData}/>
     <p>Не совсем понятно, нужно ли делать валидацию данных, поэтому она не делалась. Если нужно - то какого формата должны быть даты?<br />
