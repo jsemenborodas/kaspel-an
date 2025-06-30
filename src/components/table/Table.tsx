@@ -8,8 +8,9 @@ import {
 import './Table.css'
 import { useState } from 'react';
 import { CreateModal } from '../modals/createModal';
+import { EditModal } from '../modals/editModal';
 
-type DataSourceType = {
+export type DataSourceType = {
   key: string;
   name: string;
   date: number;
@@ -19,6 +20,7 @@ type DataSourceType = {
 export function TableComponent() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editData, setEditData] = useState<DataSourceType>({name: '', date: 0, value: 0, key: '0'})
     const [dataSource, setDataSource] = useState<DataSourceType[]>([
     {
       key: '1',
@@ -34,14 +36,7 @@ export function TableComponent() {
     },
   ]);
 
-  const deleteData = (key: string) => {
-    const filteredData = dataSource.filter((i) => i.key !== key);
-    const data = filteredData.map((item, index) => ({
-        ...item,
-        key: (index + 1).toString(), 
-    }));
-    setDataSource(data);
-  }
+  
     const columns = [
         {
             title: 'Name',
@@ -68,7 +63,7 @@ export function TableComponent() {
                 width: '10%',
                 render: (record: DataSourceType) => (
                 <Space size="middle">
-                    <Button><EditOutlined /></Button>
+                    <Button onClick={() => {setIsEditModalOpen(!isEditModalOpen); setEditData({name: record.name, date: record.date, value: record.value, key: record.key})}}><EditOutlined /></Button>
                     <Button onClick={() => deleteData(record.key)}><DeleteOutlined /></Button>
                     </Space>
                     ),
@@ -84,6 +79,21 @@ const AddToDataSource = (name: string, date: number, value: number) => {
     };
     setDataSource((prev) => [...prev, newData])
 }
+const deleteData = (key: string) => {
+    const filteredData = dataSource.filter((i) => i.key !== key);
+    const data = filteredData.map((item, index) => ({
+        ...item,
+        key: (index + 1).toString(), 
+    }));
+    setDataSource(data);
+  }
+const changeData = (key: string, name: string, date: number, value: number) => {
+    setDataSource((prevData) => 
+        prevData.map((item) => 
+            item.key === key ? { ...item, name, date, value } : item
+        )
+    );
+};
 return(<>
     <Flex className='CreateButtonWrapper'>
         <Button className='CreateButton' onClick={() => {
@@ -92,5 +102,6 @@ return(<>
     </Flex>
     <Table pagination={false} columns={columns} dataSource={dataSource.map((i)=> i)} className='Table'/>
     <CreateModal isModalOpen = {isCreateModalOpen} setIsModalOpen={setIsCreateModalOpen} addToDataSource={AddToDataSource}/>
+    <EditModal isModalOpen ={isEditModalOpen} setIsModalOpen={setIsEditModalOpen} changeData={changeData} data={editData}/>
     </>)
 }
