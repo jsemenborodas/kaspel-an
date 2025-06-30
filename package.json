@@ -1,7 +1,7 @@
 {
   "name": "antd-demo",
   "private": true,
-   "homepage": "https://jsemenborodas.github.io/kaspel-an",
+  "homepage": "https://jsemenborodas.github.io/kaspel-an/",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
