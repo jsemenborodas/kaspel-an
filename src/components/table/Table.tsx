@@ -130,7 +130,6 @@ export function TableComponent() {
             {
                 title: (<span style={{userSelect: 'none'}}>Action</span>),
                 key: 'action',
-                align: 'center',
                 width: '10%',
                 render: (record: DataSourceType) => (
                 <Space size="middle">
